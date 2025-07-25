@@ -1,9 +1,14 @@
 import express from "express";
-import authRoutes from "./routes/auth.routes";
-import fileRoutes from "./routes/file.routes";
+import cors from 'cors';
+import helmet from 'helmet';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
+
+app.use(helmet());
+app.use(cors());
 app.use(express.json());
-app.use("/api", authRoutes);
-app.use("/api/files", fileRoutes);
+
 export default app;

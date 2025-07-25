@@ -1,2 +1,11 @@
 import app from "./app";
-app.listen(3001, () => console.log("Server running on port 3001"));
+
+app.get('/api/health', (req, res) => {
+  res.json({ message: 'Server is running!' });
+});
+
+const PORT = process.env.PORT
+
+app.listen(PORT, () => {
+console.log(`Server running on ${PORT}`);
+});
