@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Sharing App - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .toggle-link {
+            color: #667eea;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+
+        .message {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .success {
+            background: #efe;
+            color: #393;
+            border: 1px solid #cfc;
+        }
+
+        .loading {
+            display: none;
+            margin: 10px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🔐 SecureShare</div>
+        <div class="subtitle">Secure file sharing made simple</div>
+        
+        <div id="message" class="message" style="display: none;"></div>
+        <div id="loading" class="loading">Processing...</div>
+        
+        <form id="authForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">Sign In</button>
+        </form>
+        
+        <p>
+            <span id="toggleText">Don't have an account?</span>
+            <a href="#" class="toggle-link" id="toggleMode">Sign Up</a>
+        </p>
+    </div>
+
+    <script>
+        let isLoginMode = true;
+        const form = document.getElementById('authForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const toggleLink = document.getElementById('toggleMode');
+        const toggleText = document.getElementById('toggleText');
+        const messageDiv = document.getElementById('message');
+        const loadingDiv = document.getElementById('loading');
+
+        // Toggle between login and signup
+        toggleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+            
+            if (isLoginMode) {
+                submitBtn.textContent = 'Sign In';
+                toggleText.textContent = "Don't have an account?";
+                toggleLink.textContent = 'Sign Up';
+            } else {
+                submitBtn.textContent = 'Sign Up';
+                toggleText.textContent = 'Already have an account?';
+                toggleLink.textContent = 'Sign In';
+            }
+            
+            hideMessage();
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            showLoading();
+            
+            try {
+                if (isLoginMode) {
+                    await login(username, password);
+                } else {
+                    await signup(username, password);
+                }
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        async function login(username, password) {
+            const response = await fetch('http://localhost:4000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Store tokens (in production, consider more secure storage)
+                localStorage.setItem('accessToken', data.accessToken);
+                localStorage.setItem('refreshToken', data.refreshToken);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                showMessage('Login successful! Redirecting...', 'success');
+                
+                // Redirect to dashboard/main app (you'll need to create this)
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+            } else {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Login failed');
+            }
+        }
+
+        async function signup(username, password) {
+            const response = await fetch('http://localhost:4000/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                showMessage('Account created successfully! Please sign in.', 'success');
+                
+                // Switch to login mode
+                setTimeout(() => {
+                    isLoginMode = true;
+                    submitBtn.textContent = 'Sign In';
+                    toggleText.textContent = "Don't have an account?";
+                    toggleLink.textContent = 'Sign Up';
+                    hideMessage();
+                }, 2000);
+            } else {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Signup failed');
+            }
+        }
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        function hideMessage() {
+            messageDiv.style.display = 'none';
+        }
+
+        function showLoading() {
+            loadingDiv.style.display = 'block';
+            submitBtn.disabled = true;
+        }
+
+        function hideLoading() {
+            loadingDiv.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+
+        // Check if user is already logged in
+        if (localStorage.getItem('accessToken')) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
