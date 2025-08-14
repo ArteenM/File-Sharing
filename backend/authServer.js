@@ -12,10 +12,12 @@ const cors = require('cors')
 
 app.use(express.json())
 
-app.use(cors)({
-    origin: ['http://localhost:3000]'],
+app.use(cors({
+    origin: ['http://localhost:3000]', // server.js,
+        'http://localhost:3001' // Front end.
+    ],
     credentials: true
-})
+}))
 // Gonna need a database for this and user info.
 //let refreshTokens = []
 
@@ -23,27 +25,40 @@ app.post('/token', (req, res) => {
     const refreshToken = req.body.token
     if (refreshToken == null) return res.sendStatus(401)
 
-    const dupToken = userDb.findToken(refreshToken)
-    if (!dupToken) return res.sendStatus(403)
+    try
+    {
+        const dupToken = userDb.findToken(refreshToken)
+        if (!dupToken) return res.sendStatus(403)
 
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403)
-    const accessToken = generateAccessToken({ user: user.name }) 
-    res.json({ accessToken: accessToken })
-    })
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403)
+        const accessToken = generateAccessToken({ user: user.name, id: user.id }) 
+        res.json({ accessToken: accessToken })
+        })
+    }
+    catch (error)
+    {
+        res.status(500).json({ error: 'Internal server error' })
+    }
 })
 
 app.delete('/logout', (req, res) => {
     const refreshToken = req.body.token
 
-    if (refreshToken)
+    try
     {
-        userDb.deleteToken(refreshToken)
-    }
+        if (refreshToken)
+        {
+            userDb.deleteToken(refreshToken)
+        }
     res.sendStatus(204)
+    }
+    catch (error)
+    {
+        res.status(500).json({error: 'Logout failed'})
+    }
 })
 
-users = []
 
 app.get('/users', (req, res) => {
     try
