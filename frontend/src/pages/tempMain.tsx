@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
+// Define what user data we return after successful login
+interface User {
+  id: string;
+  username: string;
+  accessToken: string;
+  refreshToken: string;
+}
+
 interface FormData {
   email: string;
   password: string;
@@ -16,7 +24,12 @@ interface FormErrors {
   general?: string;
 }
 
-const AuthPage: React.FC = () => {
+// Add the missing prop interface
+interface AuthPageProps {
+  onLoginSuccess: (userData: User) => void;
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -82,19 +95,20 @@ const AuthPage: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    
     if (!validateForm()) return;
 
     setIsLoading(true);
     setErrors({});
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      // Your auth server runs on port 4000
+      const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+      const endpoint = isLogin ? `${BASE_URL}/login` : `${BASE_URL}/users`;
+      
       const body = isLogin 
-        ? { email: formData.email, password: formData.password }
+        ? { username: formData.email, password: formData.password } // Your backend expects 'username'
         : { 
-            name: formData.name, 
-            email: formData.email, 
+            username: formData.email, // Using email as username for now
             password: formData.password 
           };
 
@@ -104,27 +118,72 @@ const AuthPage: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
+        credentials: 'include',
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed');
+        // Handle specific error cases based on your backend responses
+        if (response.status === 400) {
+          const errorText = await response.text();
+          throw new Error(errorText === 'Cannot find user' ? 'Invalid username or password' : errorText);
+        } else if (response.status === 409) {
+          throw new Error('Username already exists');
+        } else if (response.status === 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          const errorText = await response.text();
+          throw new Error(errorText || `Error: ${response.status}`);
+        }
       }
 
-      // Success - you might want to redirect or store auth token
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+
+      // Success handling
       console.log('Authentication successful:', data);
       
-      // Example: Store token and redirect
-      if (data.token) {
-        // localStorage.setItem('authToken', data.token); // Note: localStorage not supported in artifacts
-        alert(`${isLogin ? 'Login' : 'Registration'} successful!`);
+      if (isLogin && data.accessToken) {
+        // Create user object to pass to parent
+        const userData: User = {
+          id: data.user.id || data.user.username, // fallback to username if no id
+          username: data.user.username,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken
+        };
+        
+        // Call the parent's success handler
+        onLoginSuccess(userData);
+        
+      } else if (!isLogin) {
+        alert(`Account created successfully! You can now log in.`);
+        // Switch to login mode after successful registration
+        setIsLogin(true);
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          name: ''
+        });
       }
 
     } catch (error) {
-      setErrors({
-        general: error instanceof Error ? error.message : 'An error occurred'
-      });
+      console.error('Auth error:', error);
+      
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        setErrors({
+          general: 'Unable to connect to server. Please check your internet connection.'
+        });
+      } else {
+        setErrors({
+          general: error instanceof Error ? error.message : 'An unexpected error occurred'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -184,15 +243,15 @@ const AuthPage: React.FC = () => {
               </div>
             )}
 
-            {/* Email field */}
+            {/* Email/Username field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                {isLogin ? 'Username' : 'Username (Email)'}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type="email"
+                  type={isLogin ? "text" : "email"}
                   id="email"
                   name="email"
                   value={formData.email}
@@ -200,7 +259,7 @@ const AuthPage: React.FC = () => {
                   className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter your email"
+                  placeholder={isLogin ? "Enter your username" : "Enter your email (will be used as username)"}
                 />
               </div>
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}

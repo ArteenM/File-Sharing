@@ -14,7 +14,7 @@ app.use(express.json())
 
 app.use(cors({
     origin: ['http://localhost:3000]', // server.js,
-        'http://localhost:3001' // Front end.
+             'http://localhost:3001' // Front end.
     ],
     credentials: true
 }))
@@ -38,7 +38,7 @@ app.post('/token', (req, res) => {
     }
     catch (error)
     {
-        res.status(500).json({ error: 'Internal server error' })
+                res.status(500).json({ error: 'Internal server error' })
     }
 })
 
