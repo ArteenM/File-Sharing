@@ -204,9 +204,26 @@ const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-const generateShareToken = () => {
-  return crypto.randomBytes(32).toString('hex');
+// ==================== ENHANCED SHARING SYSTEM ====================
+
+// Enhanced share token generation with options
+const generateAdvancedShareToken = (options = {}) => {
+  const token = crypto.randomBytes(32).toString('hex');
+  return {
+    token,
+    createdAt: new Date().toISOString(),
+    expiresAt: options.expiresIn ? 
+      new Date(Date.now() + options.expiresIn).toISOString() : null,
+    password: options.password || null,
+    maxDownloads: options.maxDownloads || null,
+    downloadCount: 0,
+    allowPreview: options.allowPreview !== false, // default true
+    permissions: options.permissions || ['download'] // ['download', 'preview']
+  };
 };
+
+// In-memory storage for share links (use database in production)
+const shareDatabase = new Map();
 
 // ==================== API ROUTES ====================
 
@@ -249,7 +266,7 @@ app.post('/api/files/upload', uploadLimiter, authenticateToken, upload.array('fi
         path: file.path,
         size: file.size,
         mimetype: file.mimetype,
-        shareToken: generateShareToken()
+        shareToken: generateAdvancedShareToken()
       });
       
       uploadedFiles.push({
@@ -353,22 +370,71 @@ app.get('/api/files/download/:fileId', downloadLimiter, authenticateToken, async
   }
 });
 
-// Share file (public access with token)
+// Enhanced share file (public access with token)
 app.get('/api/files/share/:shareToken', downloadLimiter, async (req, res) => {
   try {
     const { shareToken } = req.params;
+    const { password, action = 'download' } = req.query;
     
-    // Find file by share token
-    let fileMetadata = null;
-    for (const [id, file] of fileDatabase.entries()) {
-      if (file.shareToken === shareToken) {
-        fileMetadata = file;
-        break;
+    const shareData = shareDatabase.get(shareToken);
+    
+    if (!shareData) {
+      // Fallback to old simple sharing for backward compatibility
+      let fileMetadata = null;
+      for (const [id, file] of fileDatabase.entries()) {
+        if (file.shareToken === shareToken) {
+          fileMetadata = file;
+          break;
+        }
       }
+      
+      if (!fileMetadata) {
+        return res.status(404).json({ error: 'Shared file not found or link expired' });
+      }
+      
+      // Check if file exists on disk
+      try {
+        await fs.access(fileMetadata.path);
+      } catch {
+        return res.status(404).json({ error: 'File not found on server' });
+      }
+      
+      // Set appropriate headers for old simple sharing
+      res.setHeader('Content-Disposition', `attachment; filename="${fileMetadata.originalName}"`);
+      res.setHeader('Content-Type', fileMetadata.mimetype);
+      
+      return res.sendFile(path.resolve(fileMetadata.path));
     }
     
+    // Enhanced sharing logic
+    // Check expiration
+    if (shareData.expiresAt && new Date() > new Date(shareData.expiresAt)) {
+      return res.status(410).json({ error: 'Share link has expired' });
+    }
+    
+    // Check download limit
+    if (shareData.maxDownloads && shareData.downloadCount >= shareData.maxDownloads) {
+      return res.status(410).json({ error: 'Download limit reached' });
+    }
+    
+    // Check password
+    if (shareData.password && shareData.password !== password) {
+      return res.status(401).json({ 
+        error: 'Password required',
+        requiresPassword: true 
+      });
+    }
+    
+    // Check permissions
+    if (!shareData.permissions.includes(action)) {
+      return res.status(403).json({ error: `Action '${action}' not permitted` });
+    }
+    
+    // Get file metadata
+    const fileMetadata = await getFileMetadata(shareData.fileId);
+    
     if (!fileMetadata) {
-      return res.status(404).json({ error: 'Shared file not found or link expired' });
+      return res.status(404).json({ error: 'Original file not found' });
     }
     
     // Check if file exists on disk
@@ -378,16 +444,53 @@ app.get('/api/files/share/:shareToken', downloadLimiter, async (req, res) => {
       return res.status(404).json({ error: 'File not found on server' });
     }
     
-    // Set appropriate headers
-    res.setHeader('Content-Disposition', `attachment; filename="${fileMetadata.originalName}"`);
-    res.setHeader('Content-Type', fileMetadata.mimetype);
+    // Handle different actions
+    if (action === 'info') {
+      // Return file info without downloading
+      return res.json({
+        name: fileMetadata.originalName,
+        size: fileMetadata.size,
+        sizeFormatted: formatFileSize(fileMetadata.size),
+        mimetype: fileMetadata.mimetype,
+        uploadedAt: fileMetadata.uploadedAt,
+        shareConfig: {
+          allowPreview: shareData.allowPreview,
+          permissions: shareData.permissions,
+          downloadCount: shareData.downloadCount,
+          maxDownloads: shareData.maxDownloads
+        }
+      });
+    }
+    
+    if (action === 'preview' && !shareData.allowPreview) {
+      return res.status(403).json({ error: 'Preview not allowed for this share' });
+    }
+    
+    // Increment download count for download action
+    if (action === 'download') {
+      shareData.downloadCount++;
+      shareDatabase.set(shareToken, shareData);
+    }
+    
+    // Set appropriate headers based on action
+    if (action === 'preview') {
+      // For preview, set content-type but no download headers
+      res.setHeader('Content-Type', fileMetadata.mimetype);
+      // Add some security headers for preview
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+    } else {
+      // For download, force download
+      res.setHeader('Content-Disposition', `attachment; filename="${fileMetadata.originalName}"`);
+      res.setHeader('Content-Type', fileMetadata.mimetype);
+    }
     
     // Send file
     res.sendFile(path.resolve(fileMetadata.path));
     
   } catch (error) {
-    console.error('Share download error:', error);
-    res.status(500).json({ error: 'Download failed' });
+    console.error('Share access error:', error);
+    res.status(500).json({ error: 'Failed to access shared file' });
   }
 });
 
@@ -424,7 +527,185 @@ app.delete('/api/files/:fileId', authenticateToken, async (req, res) => {
   }
 });
 
-// Get file info (without downloading)
+// Create or update share link
+app.post('/api/files/:fileId/share', authenticateToken, async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const { 
+      expiresIn, 
+      password, 
+      maxDownloads, 
+      allowPreview = true,
+      permissions = ['download']
+    } = req.body;
+    
+    const fileMetadata = await getFileMetadata(fileId);
+    
+    if (!fileMetadata) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Check if user owns the file
+    if (String(fileMetadata.userId) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    // Generate new share configuration
+    const shareConfig = generateAdvancedShareToken({
+      expiresIn,
+      password,
+      maxDownloads,
+      allowPreview,
+      permissions
+    });
+    
+    // Update file metadata with new share token
+    fileMetadata.shareToken = shareConfig.token;
+    fileMetadata.shareConfig = shareConfig;
+    fileDatabase.set(fileId, fileMetadata);
+    
+    // Store share configuration separately for quick lookups
+    shareDatabase.set(shareConfig.token, {
+      fileId,
+      ...shareConfig,
+      fileMetadata: {
+        id: fileMetadata.id,
+        originalName: fileMetadata.originalName,
+        size: fileMetadata.size,
+        mimetype: fileMetadata.mimetype,
+        ownerId: fileMetadata.userId
+      }
+    });
+    
+    res.json({
+      message: 'Share link created successfully',
+      shareUrl: `/api/files/share/${shareConfig.token}`,
+      shareToken: shareConfig.token,
+      config: {
+        expiresAt: shareConfig.expiresAt,
+        maxDownloads: shareConfig.maxDownloads,
+        hasPassword: !!shareConfig.password,
+        allowPreview: shareConfig.allowPreview,
+        permissions: shareConfig.permissions
+      }
+    });
+    
+  } catch (error) {
+    console.error('Share creation error:', error);
+    res.status(500).json({ error: 'Failed to create share link' });
+  }
+});
+
+// Get share link information (for file owner)
+app.get('/api/files/:fileId/share', authenticateToken, async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const fileMetadata = await getFileMetadata(fileId);
+    
+    if (!fileMetadata) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Check if user owns the file
+    if (String(fileMetadata.userId) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    if (!fileMetadata.shareToken) {
+      return res.status(404).json({ error: 'No share link exists for this file' });
+    }
+    
+    const shareData = shareDatabase.get(fileMetadata.shareToken);
+    
+    res.json({
+      shareUrl: `/api/files/share/${fileMetadata.shareToken}`,
+      shareToken: fileMetadata.shareToken,
+      config: shareData ? {
+        createdAt: shareData.createdAt,
+        expiresAt: shareData.expiresAt,
+        maxDownloads: shareData.maxDownloads,
+        downloadCount: shareData.downloadCount,
+        hasPassword: !!shareData.password,
+        allowPreview: shareData.allowPreview,
+        permissions: shareData.permissions,
+        isExpired: shareData.expiresAt ? new Date() > new Date(shareData.expiresAt) : false,
+        isMaxDownloadsReached: shareData.maxDownloads ? shareData.downloadCount >= shareData.maxDownloads : false
+      } : null
+    });
+    
+  } catch (error) {
+    console.error('Share info error:', error);
+    res.status(500).json({ error: 'Failed to get share info' });
+  }
+});
+
+// Delete/revoke share link
+app.delete('/api/files/:fileId/share', authenticateToken, async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const fileMetadata = await getFileMetadata(fileId);
+    
+    if (!fileMetadata) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Check if user owns the file
+    if (String(fileMetadata.userId) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    if (!fileMetadata.shareToken) {
+      return res.status(404).json({ error: 'No share link exists for this file' });
+    }
+    
+    // Remove from share database
+    shareDatabase.delete(fileMetadata.shareToken);
+    
+    // Remove share token from file metadata
+    fileMetadata.shareToken = null;
+    fileMetadata.shareConfig = null;
+    fileDatabase.set(fileId, fileMetadata);
+    
+    res.json({ message: 'Share link revoked successfully' });
+    
+  } catch (error) {
+    console.error('Share deletion error:', error);
+    res.status(500).json({ error: 'Failed to revoke share link' });
+  }
+});
+
+// Get all shares for a user (optional - for management dashboard)
+app.get('/api/shares', authenticateToken, async (req, res) => {
+  try {
+    const userShares = [];
+    
+    for (const [token, shareData] of shareDatabase.entries()) {
+      if (String(shareData.fileMetadata.ownerId) === String(req.user.id)) {
+        userShares.push({
+          fileId: shareData.fileId,
+          fileName: shareData.fileMetadata.originalName,
+          shareToken: token,
+          shareUrl: `/api/files/share/${token}`,
+          createdAt: shareData.createdAt,
+          expiresAt: shareData.expiresAt,
+          downloadCount: shareData.downloadCount,
+          maxDownloads: shareData.maxDownloads,
+          hasPassword: !!shareData.password,
+          allowPreview: shareData.allowPreview,
+          permissions: shareData.permissions,
+          isExpired: shareData.expiresAt ? new Date() > new Date(shareData.expiresAt) : false,
+          isMaxDownloadsReached: shareData.maxDownloads ? shareData.downloadCount >= shareData.maxDownloads : false
+        });
+      }
+    }
+    
+    res.json({ shares: userShares });
+    
+  } catch (error) {
+    console.error('Get shares error:', error);
+    res.status(500).json({ error: 'Failed to get shares' });
+  }
+});
 app.get('/api/files/info/:fileId', authenticateToken, async (req, res) => {
   try {
     const { fileId } = req.params;
