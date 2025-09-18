@@ -1,11 +1,13 @@
-// database.js
+//database.js
+
 const Database = require('better-sqlite3');
 const path = require('path');
+ 
 
-// Create or open database file
-const db = new Database(path.join(__dirname, 'fileapp.db'));
+// require('path') fixes differences in how different OS' work with file and directory paths.
 
-// Create tables if they don't exist
+const db = new Database(path.join(__dirname, 'users.db'), { verbose: console.log });
+
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,82 +27,91 @@ db.exec(`
     )
 `);
 
-// Prepared statements for better performance
 const insertUser = db.prepare('INSERT INTO users (username, password) VALUES (?, ?)');
-const findUserByUsername = db.prepare('SELECT * FROM users WHERE username = ?');
-const findUserById = db.prepare('SELECT * FROM users WHERE id = ?');
-const insertRefreshToken = db.prepare('INSERT INTO refresh_tokens (token, user_id) VALUES (?, ?)');
-const findRefreshToken = db.prepare('SELECT * FROM refresh_tokens WHERE token = ?');
-const deleteRefreshToken = db.prepare('DELETE FROM refresh_tokens WHERE token = ?');
+const findUser = db.prepare('SELECT * FROM users WHERE username = ?');
+const insertToken = db.prepare('INSERT INTO refresh_tokens (token, user_id) VALUES (?, ?)');
+const findToken = db.prepare('SELECT * FROM refresh_tokens WHERE token = ?');
+const deleteToken = db.prepare('DELETE FROM refresh_tokens WHERE token = ?');
 const getAllUsers = db.prepare('SELECT id, username, created_at FROM users');
 
-// Database functions
 const userDb = {
     createUser: (username, hashedPassword) => {
         try {
             const result = insertUser.run(username, hashedPassword);
             return result;
-        } catch (error) {
-            if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        }
+
+        catch (error)
+        {
+            if (error.code === 'SQLITE_CONSTRAINT_UNIQUE')
+            {
                 throw new Error('Username already exists');
             }
+
             throw error;
         }
     },
 
     findUser: (username) => {
-        try {
-            return findUserByUsername.get(username);
-        } catch (error) {
-            console.error('Error finding user:', error);
+        try
+        {
+            return findUser.get(username);
+        }
+
+        catch (error)
+        {
+            console.error('Error finding user: ', user);
             return null;
         }
     },
 
-    findUserById: (id) => {
-        try {
-            return findUserById.get(id);
-        } catch (error) {
-            console.error('Error finding user by ID:', error);
+    insertToken: (token, user_id) => {
+        try
+        {
+            return insertToken.run(token, user_id);
+        }
+        catch (error)
+        {
+            console.error('Error adding token: ', error);
+            throw error;
+        }
+    },
+
+    findToken: (token) => {
+        try
+        {
+            return findToken.get(token);
+        }
+        catch (error)
+        {
+            console.error('Error finding token: ', error);
+            return null;
+        }
+    },
+
+    deleteToken: (token) => {
+        try
+        {
+            return deleteToken.run(token);
+        }
+        catch (error)
+        {
+            console.error('Error deleting token: ', error);
             return null;
         }
     },
 
     getAllUsers: () => {
-        try {
+        try
+        {
             return getAllUsers.all();
-        } catch (error) {
-            console.error('Error getting all users:', error);
+        }
+        catch (error)
+        {
+            console.error('Error finding all users: ', error);
             return [];
         }
-    },
-
-    addRefreshToken: (token, userId) => {
-        try {
-            return insertRefreshToken.run(token, userId);
-        } catch (error) {
-            console.error('Error adding refresh token:', error);
-            throw error;
-        }
-    },
-
-    validateRefreshToken: (token) => {
-        try {
-            return findRefreshToken.get(token);
-        } catch (error) {
-            console.error('Error validating refresh token:', error);
-            return null;
-        }
-    },
-
-    removeRefreshToken: (token) => {
-        try {
-            return deleteRefreshToken.run(token);
-        } catch (error) {
-            console.error('Error removing refresh token:', error);
-            return null;
-        }
     }
-};
+}
 
 module.exports = { userDb, db };
