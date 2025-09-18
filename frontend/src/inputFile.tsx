@@ -1,8 +1,12 @@
 import React from 'react';
 import { useState } from 'react'
-import './App.css'
 
-function App() {
+interface FileInputProps
+{
+  onLogout: () => void
+}
+const FileInputPage: React.FC<FileInputProps> = ({onLogout }) =>
+  {
   const [inputFile, setInputFile] = useState<File | null>(null)
 
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -11,8 +15,9 @@ function App() {
     {
         setInputFile(files[0])
     }
-
   }
+
+  onLogout()
   return (
     <>
       <h1>File-Sharing Application.</h1>
@@ -24,4 +29,4 @@ function App() {
   )
 }
 
-export default App
+export default FileInputPage;

@@ -1,18 +1,35 @@
 import React, {useState} from 'react'
 
-interface LoginData {
+interface User
+{
+  id: string
+  username: string
+  accessToken: string
+  refreshToken: string
+}
+interface formData
+{
     username: string
     password: string
+    confirmPassword?: string
 }
 
-interface FormErrors {
+
+interface FormErrors
+{
     username?: string
     password?: string
+    confirmPassword?: string
 }
 
-function LoginPage()
+interface LoginPageProps
 {
-    const [formData, setFormData] = useState<LoginData>({
+  onLoginSuccess: (userData: User) => void
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) =>
+{
+    const [formData, setFormData] = useState<formData>({
         username: '',
         password: ''
     })
@@ -54,7 +71,65 @@ function LoginPage()
 
     const handleSubmit = async() => {
         if (!validateForm()) return
-    }
+
+        setErrors({})
+
+        try
+        {
+          const BASE_URL = 'http://localhost:4000'
+          
+          const endpoint = `${BASE_URL}/login`
+
+
+          const body = 
+          {
+            username: formData.username, password: formData.password 
+          }
+          const response = await fetch(endpoint,
+          {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+            credentials: 'include',
+          })
+          if (!response.ok)
+          {
+            if(response.status === 400)
+            {
+              throw new Error('Invalid username or password');
+            }
+            else if (response.status === 500)
+            {
+                throw new Error('Server error. Please try again later.');
+            }
+            else
+            {
+                const errorText = await response.text();
+                throw new Error(errorText || `Error: ${response.status}`);
+            }
+          }
+
+          const data = await response.json()
+
+          if (data.accessToken)
+          {
+            const userData: User = {
+              id: data.user.id || data.user.username,
+              username: data.user.username,
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken
+            }
+            onLoginSuccess(userData)
+          }
+        }
+        catch(error)
+        {
+          console.error('Auth error:', error)
+        }
+      }
 
       return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
