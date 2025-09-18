@@ -1,0 +1,144 @@
+import React, {useState} from 'react'
+
+interface LoginData {
+    username: string
+    password: string
+}
+
+interface FormErrors {
+    username?: string
+    password?: string
+}
+
+function LoginPage()
+{
+    const [formData, setFormData] = useState<LoginData>({
+        username: '',
+        password: ''
+    })
+    const [errors, setErrors] = useState<FormErrors>({})
+    const [showPassword, setShowPassword] = useState(false)
+
+    const validateForm = (): boolean => {
+        const newErrors: FormErrors = {}
+
+        if (!formData.username)
+        {
+            newErrors.username = 'Username is required'
+        }
+
+        if (!formData.password)
+        {
+            newErrors.password = 'Password is required'
+        }
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
+
+    const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const {name, value } = e.currentTarget
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }))
+
+        if (errors[name as keyof FormErrors])
+        {
+            setErrors(prev => ({
+                ...prev,
+                [name]: undefined
+        }))
+    }
+    }
+
+    const handleSubmit = async() => {
+        if (!validateForm()) return
+    }
+
+      return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Login Card */}
+        <div className="bg-white border border-gray-300 p-6 space-y-4">
+          {/* Header */}
+          <div className="text-center">
+            <h1 className="text-xl font-semibold text-gray-900">Login</h1>
+          </div>
+
+          {/* Form */}
+          <div className="space-y-3">
+            {/* username Field */}
+            <div>
+              <label htmlFor="username" className="block text-sm text-gray-700 mb-1">
+                username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="username"
+                value={formData.username}
+                onChange={handleOnChange}
+                className={`w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-gray-500 ${
+                  errors.username ? 'border-red-400' : ''
+                }`}
+                placeholder="Enter username"
+              />
+              {errors.username && (
+                <div className="mt-1 text-red-600 text-sm">
+                  {errors.username}
+                </div>
+              )}
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={handleOnChange}
+                className={`w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-gray-500 ${
+                  errors.password ? 'border-red-400' : ''
+                }`}
+                placeholder="Enter password"
+              />
+              {errors.password && (
+                <div className="mt-1 text-red-600 text-sm">
+                  {errors.password}
+                </div>
+              )}
+            </div>
+
+            {/* Show Password */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="showPassword"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="showPassword" className="text-sm text-gray-700">
+                Show password
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-blue-600 text-white py-2 px-4 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
