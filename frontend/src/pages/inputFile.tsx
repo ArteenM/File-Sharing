@@ -18,7 +18,7 @@ const FileInputPage = () =>
   return (
     <>
       <h1>File-Sharing Application.</h1>
-      <div className="card">
+      <div className="fileInput">
         <input type="file" onChange={handleOnChange}></input>
       </div>
       <h2>This is the name of inputFile: {inputFile ? inputFile.name: 'No file selected'}</h2>
