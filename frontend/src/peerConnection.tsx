@@ -100,7 +100,7 @@ function PeerApp() {
       handleReceivedData(data as FileMessage) // Process Data
     })
 
-    conn.on('close', () => {
+    conn.on('close', () => {            // Close Connection
       setConnectionStatus('disconnected')
       addMessage('Connection closed')
       connectionRef.current = null
@@ -119,7 +119,7 @@ function PeerApp() {
         receivingFile.current = {
           name: data.fileName,
           size: data.fileSize,
-          chunks: new Array(data.totalChunks),
+          chunks: new Array(data.totalChunks),  // Allocate Chunk Array
           receivedChunks: 0,
           totalChunks: data.totalChunks
         }
@@ -129,7 +129,7 @@ function PeerApp() {
 
       case 'chunk':
         if (receivingFile.current) {
-          receivingFile.current.chunks[data.chunkIndex] = data.data
+          receivingFile.current.chunks[data.chunkIndex] = data.data // Store Chunk in correct possition
           receivingFile.current.receivedChunks++
           
           const progress = (receivingFile.current.receivedChunks / receivingFile.current.totalChunks) * 100
@@ -162,7 +162,7 @@ function PeerApp() {
     setConnectionStatus('connecting')
     addMessage(`Connecting to peer: ${remotePeerId}`)
     
-    const conn = peerRef.current.connect(remotePeerId)
+    const conn = peerRef.current.connect(remotePeerId)  // Initiate Connection
     connectionRef.current = conn
 
     conn.on('open', () => {
@@ -189,11 +189,10 @@ function PeerApp() {
     setTransferProgress(0)
     
     try {
-      const arrayBuffer = await inputFile.arrayBuffer()
-      const totalChunks = Math.ceil(arrayBuffer.byteLength / CHUNK_SIZE)
+      const arrayBuffer = await inputFile.arrayBuffer() // Read file as binary.
+      const totalChunks = Math.ceil(arrayBuffer.byteLength / CHUNK_SIZE) // Calculate Amount of chunks needed.
 
-      // Send file start message
-      const fileStart: FileStart = {
+      const fileStart: FileStart = {  // File Metadata
         type: 'file-start',
         fileName: inputFile.name,
         fileSize: inputFile.size,
@@ -203,7 +202,7 @@ function PeerApp() {
 
       addMessage(`Sending file: ${inputFile.name} (${totalChunks} chunks)`)
 
-      // Send file chunks
+      // Send file chunks one-by-one.
       for (let i = 0; i < totalChunks; i++) {
         const start = i * CHUNK_SIZE
         const end = Math.min(start + CHUNK_SIZE, arrayBuffer.byteLength)
