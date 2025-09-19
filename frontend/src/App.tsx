@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import LoginPage from './login.tsx'
-import FileInputPage from './inputFile.tsx'
-import RegisterPage from './register.tsx'
+import LoginPage from './pages/login.tsx'
+import FileInputPage from './pages/inputFile.tsx'
+import RegisterPage from './pages/register.tsx'
+import Header from './components/headerComponent.tsx'
 
 type PageType = 'login' | 'inputFile' | 'register'
 
@@ -15,7 +16,7 @@ interface User {
 
 function App()
 {
-    const [currentPage, setCurrentPage] = useState<PageType>('register')
+    const [currentPage, setCurrentPage] = useState<PageType>('login')
     const [user, setUser] = useState<User | null>(null)
 
     const handleLoginSuccess = (userData: User) => {
@@ -41,7 +42,10 @@ function App()
             )}
 
             {currentPage === 'inputFile' && user && (
-                <FileInputPage onLogout={handleLogout}/>
+                <>
+                <Header onLogout={handleLogout} />
+                <FileInputPage />
+                </>
             )}
 
             {currentPage === 'register' && (
