@@ -3,7 +3,7 @@ name: Deploy React App to GitHub Pages
 on:
   push:
     branches:
-      - main  # or "master", if that's your main branch
+      - main 
 
 permissions:
   contents: write
@@ -19,7 +19,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
+          cache: 'npm'  
 
       - name: Set up Git user
         run: |
@@ -35,8 +36,7 @@ jobs:
         run: npm run predeploy
 
       - name: Deploy to GitHub Pages
-        run: |
-          cd frontend
-          npm run deploy
+        working-directory: frontend
         env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run Deploy
