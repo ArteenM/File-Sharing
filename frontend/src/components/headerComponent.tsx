@@ -13,9 +13,10 @@ const Header: React.FC<HeaderProps> = ({onLogout}) =>
     return (
         <header>
             <nav>
-                <ul>
-                    <li><button> <a href="./pages/inputFile"/>Home </button></li>
-                    <li><button onClick={handleLogout}>Logout</button></li>
+                <ul className="text-blue-600 hover:underline"> 
+                    <a href="/pages/inputFile">Home</a>
+                    <button onClick={handleLogout}
+                    className="text-blue-600 hover:underline bg-transparent border-none p-0">Logout</button>
                 </ul>
             </nav>
         </header>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import LoginPage from './pages/login.tsx'
-import FileInputPage from './pages/inputFile.tsx'
+import PeerApp from './peerConnection.tsx'
 import RegisterPage from './pages/register.tsx'
 import Header from './components/headerComponent.tsx'
 
@@ -16,7 +16,7 @@ interface User {
 
 function App()
 {
-    const [currentPage, setCurrentPage] = useState<PageType>('login')
+    const [currentPage, setCurrentPage] = useState<PageType>('register')
     const [user, setUser] = useState<User | null>(null)
 
     const handleLoginSuccess = (userData: User) => {
@@ -44,7 +44,7 @@ function App()
             {currentPage === 'inputFile' && user && (
                 <>
                 <Header onLogout={handleLogout} />
-                <FileInputPage />
+                <PeerApp />
                 </>
             )}
 

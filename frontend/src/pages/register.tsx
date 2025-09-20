@@ -132,6 +132,7 @@ const RegisterPage: React.FC<RegisterProps> = ({ onRegisterSuccess }) =>
             <h1>Register </h1>
             <label htmlFor="username"> Username </label>
             <input
+            id="username"
             name = "username"
             value = {formData.username}
             onChange={handleOnChange}
@@ -148,6 +149,7 @@ const RegisterPage: React.FC<RegisterProps> = ({ onRegisterSuccess }) =>
 
             <label htmlFor="password" > Password </label>
             <input
+            id="password"
             name = "password"
             value = {formData.password}
             type={showPassword ? 'text' : 'password'}
@@ -167,6 +169,7 @@ const RegisterPage: React.FC<RegisterProps> = ({ onRegisterSuccess }) =>
             <label htmlFor="confirmPassword" > Confirm Password </label>
             <input
             name = "confirmPassword"
+            id="confirmPassword"
             value= {formData.confirmPassword}
             type={showPassword ? 'text' : 'password'}
             onChange={handleOnChange}
