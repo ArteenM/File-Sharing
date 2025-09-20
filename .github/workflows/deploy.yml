@@ -27,10 +27,11 @@ jobs:
 
       - name: Build React App
         working-directory: frontend
-        run: npm run build
+        run: npm run predeploy
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
+        run: |
+          cd frontend
+          npm run deploy
+        env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend/src
