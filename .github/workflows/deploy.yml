@@ -21,6 +21,11 @@ jobs:
         with:
           node-version: 18
 
+      - name: Set up Git user
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
       - name: Install Dependencies
         working-directory: frontend
         run: npm install
