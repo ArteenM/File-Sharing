@@ -2,14 +2,18 @@
   "name": "frontend",
   "private": true,
   "version": "0.0.0",
+  "homepage": "http://ArteenM.github.io/File-Sharing",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
+    "gh-pages": "^6.3.0",
     "js-file-download": "^0.4.12",
     "peerjs": "^1.5.5",
     "react": "^19.1.1",

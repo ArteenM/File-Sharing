@@ -2,7 +2,4 @@ Online File sharing application.
 
 Node.js backend
 React + TS frontend
-
-
-May be subject to change.
-
+Peer.Js for P2P Connection
