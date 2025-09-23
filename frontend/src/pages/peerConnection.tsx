@@ -275,7 +275,7 @@ function PeerApp() {
             className="ml-2 px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
             title="Demo: Connect to yourself"
           >
-            Demo Connect
+            Copy ID
           </button>
         )}
       </div>

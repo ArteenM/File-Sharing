@@ -14,6 +14,12 @@ interface FormErrors
     confirmPassword?: string
 }
 
+interface PostErrors
+{
+  username?: string
+  server?: string
+}
+
 interface RegisterProps
 {
     onRegisterSuccess: () => void
@@ -104,13 +110,18 @@ const RegisterPage: React.FC<RegisterProps> = ({ onRegisterSuccess }) =>
 
           if (!response.ok)
           {
+            const postErrors: PostErrors = {}
             if (response.status === 409)
             {
-              throw new Error('Username already exists');
+              postErrors.username = 'Username already exists, please change it.'
+              setErrors(postErrors)
+              throw new Error(postErrors.username);
             }
             else if (response.status === 500)
             {
-                throw new Error('Server error. Please try again later.');
+                postErrors.server = 'Server error. Please try again later'
+                setErrors(postErrors)
+                throw new Error(postErrors.server);
             }
             else
             {
@@ -206,6 +217,9 @@ const RegisterPage: React.FC<RegisterProps> = ({ onRegisterSuccess }) =>
             >
               Register
             </button>
+
+            {/* Errors */}
+            
         </div>
 
         

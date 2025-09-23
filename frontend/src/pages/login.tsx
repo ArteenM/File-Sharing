@@ -209,6 +209,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) =>
               className="w-full bg-blue-600 text-white py-2 px-4 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             > Login
             </button>
+            
           </div>
         </div>
       </div>

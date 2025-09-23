@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import LoginPage from './pages/login.tsx'
-import PeerApp from './peerConnection.tsx'
+import PeerApp from './pages/peerConnection.tsx'
 import RegisterPage from './pages/register.tsx'
 import Header from './components/headerComponent.tsx'
+import RegisterHeader from './components/registerHeader.tsx';
 
 type PageType = 'login' | 'inputFile' | 'register'
 
@@ -35,10 +36,17 @@ function App()
         setCurrentPage('login')
     }
 
+    const handlePageChange = (page: PageType) => {
+        setCurrentPage(page)
+    }
+
     return (
         <div className="App">
             {currentPage === 'login' && (
+                <>
+                <RegisterHeader onPageChange={handlePageChange} />
                 <LoginPage onLoginSuccess={handleLoginSuccess} />
+                </>
             )}
 
             {currentPage === 'inputFile' && user && (
@@ -49,7 +57,10 @@ function App()
             )}
 
             {currentPage === 'register' && (
+                <>
+                <RegisterHeader onPageChange={handlePageChange} />
                 <RegisterPage onRegisterSuccess={handleRegisterSuccess}/>
+                </>
             )}
         </div>
     )

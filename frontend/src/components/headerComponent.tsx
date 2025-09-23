@@ -14,9 +14,8 @@ const Header: React.FC<HeaderProps> = ({onLogout}) =>
         <header>
             <nav>
                 <ul className="text-blue-600 hover:underline"> 
-                    <a href="/pages/inputFile">Home</a>
                     <button onClick={handleLogout}
-                    className="text-blue-600 hover:underline bg-transparent border-none p-0">Logout</button>
+                    className="bg-transparent border-none p-0">Logout</button>
                 </ul>
             </nav>
         </header>
