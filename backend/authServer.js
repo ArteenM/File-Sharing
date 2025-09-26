@@ -19,7 +19,6 @@ app.use(cors({
     credentials: true
 }))
 // Gonna need a database for this and user info.
-//let refreshTokens = []
 
 app.post('/token', (req, res) => {
     const refreshToken = req.body.token

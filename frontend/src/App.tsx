@@ -25,10 +25,45 @@ function App()
         setCurrentPage('inputFile')
     }
 
-    const handleLogout = () =>
+    const handleLogout = async() =>
     {
         setUser(null)
         setCurrentPage('login')
+
+        // Deletes token.
+
+        const BASE_URL = 'http://localhost:4000'
+          
+        const endpoint = `${BASE_URL}/logout`
+
+
+        const body = 
+        {
+            token: user?.accessToken
+        }
+          const response = await fetch(endpoint,
+          {
+            method: 'DELETE',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+            credentials: 'include',
+          })
+
+          if (!response.ok)
+          {
+            if (response.status === 500)
+            {
+                throw new Error('Logout Failed!')
+            }
+            else
+            {
+                const errorText = await response.text();
+                throw new Error(errorText || `Error: ${response.status}`);
+            }
+          }
     }
 
     const handleRegisterSuccess = () =>

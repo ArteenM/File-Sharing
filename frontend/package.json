@@ -13,9 +13,12 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "autoprefixer": "^10.4.21",
     "gh-pages": "^6.3.0",
     "js-file-download": "^0.4.12",
     "peerjs": "^1.5.5",
+    "postcss": "^8.5.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwindcss": "^4.1.13"

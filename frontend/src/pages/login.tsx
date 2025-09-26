@@ -132,88 +132,80 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) =>
       }
 
       return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Login Card */}
-        <div className="bg-white border border-gray-300 p-6 space-y-4">
-          {/* Header */}
-          <div className="text-center">
-            <h1 className="text-xl font-semibold text-gray-900">Login</h1>
+  <div className="min-h-214 min-w-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="w-full max-w-sm h-[500px] flex items-center justify-center">
+      {/* Login Card */}
+      <div className="bg-white border border-gray-300 p-6 w-full flex flex-col justify-between space-y-18">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-gray-900">Login</h1>
+        </div>
+
+        {/* Form Fields */}
+        <div className="space-y-8">
+          {/* Username Field */}
+          <div>
+            <label htmlFor="username" className="block text-sm text-gray-700 mb-1">
+              Username
+            </label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              value={formData.username}
+              onChange={handleOnChange}
+              className="w-full px-3 py-2 border border-gray-300 text-black-500 focus:border-gray-500 text-gray-900"
+              placeholder="Enter username"
+            />
+            {errors.username && (
+              <div className="mt-1 text-red-600 text-sm">{errors.username}</div>
+            )}
           </div>
 
-          {/* Form */}
-          <div className="space-y-3">
-            {/* username Field */}
-            <div>
-              <label htmlFor="username" className="block text-sm text-gray-700 mb-1">
-                username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="username"
-                value={formData.username}
-                onChange={handleOnChange}
-                className={`w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-gray-500 ${
-                  errors.username ? 'border-red-400' : ''
-                }`}
-                placeholder="Enter username"
-              />
-              {errors.username && (
-                <div className="mt-1 text-red-600 text-sm">
-                  {errors.username}
-                </div>
-              )}
-            </div>
+          {/* Password Field */}
+          <div>
+            <label htmlFor="password" className="block text-sm text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleOnChange}
+              className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-gray-500 text-gray-900"
+              placeholder="Enter password"
+            />
+            {errors.password && (
+              <div className="mt-1 text-red-600 text-sm">{errors.password}</div>
+            )}
+          </div>
 
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={handleOnChange}
-                className={`w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-gray-500 ${
-                  errors.password ? 'border-red-400' : ''
-                }`}
-                placeholder="Enter password"
-              />
-              {errors.password && (
-                <div className="mt-1 text-red-600 text-sm">
-                  {errors.password}
-                </div>
-              )}
-            </div>
-
-            {/* Show Password */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="showPassword"
-                checked={showPassword}
-                onChange={(e) => setShowPassword(e.target.checked)}
-                className="mr-2"
-              />
-              <label htmlFor="showPassword" className="text-sm text-gray-700">
-                Show password
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-blue-600 text-white py-2 px-4 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            > Login
-            </button>
-            
+          {/* Show Password */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="showPassword"
+              checked={showPassword}
+              onChange={(e) => setShowPassword(e.target.checked)}
+              className="mr-2"
+            />
+            <label htmlFor="showPassword" className="text-sm text-gray-700">
+              Show password
+            </label>
           </div>
         </div>
+
+        {/* Submit Button */}
+        <button
+          onClick={handleSubmit}
+          className="w-full bg-blue-600 text-white py-2 px-4 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+        >
+          Login
+        </button>
       </div>
     </div>
+  </div>
   );
 };
 

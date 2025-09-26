@@ -348,37 +348,13 @@ function PeerApp() {
         </button>
       </div>
 
-      {/* Progress Bar */}
-      {isTransferring && (
-        <div className="mb-6">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
-            <span>Transfer Progress</span>
-            <span>{transferProgress.toFixed(1)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${transferProgress}%` }}
-            ></div>
-          </div>
-        </div>
-      )}
-
       {/* Messages Log */}
       <div className="border-t pt-4">
-        <h3 className="font-semibold mb-3 text-gray-800">Activity Log:</h3>
+        <h3 className="font-semibold mb-3 text-gray-800">How-To-Use:</h3>
         <div className="bg-gray-50 rounded p-3 h-40 overflow-y-auto">
-          {messages.length === 0 ? (
-            <p className="text-gray-500 text-sm">No activity yet...</p>
-          ) : (
-            <ul className="space-y-1">
-              {messages.map((msg, idx) => (
-                <li key={idx} className="text-xs text-gray-700 font-mono">
-                  {msg}
-                </li>
-              ))}
-            </ul>
-          )}
+          <p className="text-gray-500 text-sm">Copy your given ID. Either send to another user and they will connect to it,
+            or you can use it yourself on another website. Choose a file to send (must be 64KB or less), and then send.
+          </p>
         </div>
       </div>
     </div>
