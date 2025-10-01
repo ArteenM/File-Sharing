@@ -20,6 +20,7 @@ interface FormErrors
     username?: string
     password?: string
     confirmPassword?: string
+    invalid?: string
 }
 
 interface LoginPageProps
@@ -71,8 +72,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) =>
 
     const handleSubmit = async() => {
         if (!validateForm()) return
-
         setErrors({})
+        const newErrors: FormErrors = {}
 
         try
         {
@@ -99,6 +100,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) =>
           {
             if(response.status === 400)
             {
+              newErrors.invalid = 'Invalid username or password'
+              setErrors(newErrors)
               throw new Error('Invalid username or password');
             }
             else if (response.status === 500)
@@ -196,13 +199,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) =>
           </div>
         </div>
 
-        {/* Submit Button */}
-        <button
-          onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white py-2 px-4 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-        >
-          Login
-        </button>
+        {/* Submit Button & Invalid user/pass*/}
+        <div>
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-blue-600 text-white py-2 px-4 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+          >
+            Login
+          </button>
+
+          {errors && (
+          <p className="text-red-500 text-sm mt-2">
+          {errors.invalid}
+        </p>
+          ) }
+        </div>
       </div>
     </div>
   </div>

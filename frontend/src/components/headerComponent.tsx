@@ -13,9 +13,9 @@ const Header: React.FC<HeaderProps> = ({onLogout}) =>
     return (
         <header>
             <nav>
-                <ul className="text-blue-600 hover:underline"> 
+                <ul className="header bg-white shadow flex justify-center"> 
                     <button onClick={handleLogout}
-                    className="bg-transparent border-none p-0">Logout</button>
+                    className="text-black py-2 px-4 disabled:cursor-not-allowed mt-4">Logout</button>
                 </ul>
             </nav>
         </header>
