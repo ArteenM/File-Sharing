@@ -1,0 +1,59 @@
+{
+  "timestamp": "2025-11-09T22:04:27.390Z",
+  "summary": {
+    "peakThroughput": "8.17 MB/s",
+    "p95Latency": "22.26 ms",
+    "p99Latency": "22.26 ms",
+    "optimalChunkSize": "256 KB"
+  },
+  "details": [
+    {
+      "testName": "1 MB file, 64 KB chunks",
+      "fileSize": "1.00 MB",
+      "chunkSize": "64 KB",
+      "iterations": 3,
+      "avgThroughput": "2.02 MB/s",
+      "avgDuration": "0.49s",
+      "avgLatency": "19.42 ms",
+      "p95Latency": "24.41 ms",
+      "p99Latency": "24.73 ms",
+      "totalChunks": 16
+    },
+    {
+      "testName": "1 MB file, 256 KB chunks",
+      "fileSize": "1.00 MB",
+      "chunkSize": "256 KB",
+      "iterations": 3,
+      "avgThroughput": "8.17 MB/s",
+      "avgDuration": "0.12s",
+      "avgLatency": "19.26 ms",
+      "p95Latency": "22.26 ms",
+      "p99Latency": "22.26 ms",
+      "totalChunks": 4
+    },
+    {
+      "testName": "10 MB file, 256 KB chunks",
+      "fileSize": "10.00 MB",
+      "chunkSize": "256 KB",
+      "iterations": 3,
+      "avgThroughput": "8.08 MB/s",
+      "avgDuration": "1.24s",
+      "avgLatency": "19.87 ms",
+      "p95Latency": "24.05 ms",
+      "p99Latency": "24.69 ms",
+      "totalChunks": 40
+    },
+    {
+      "testName": "50 MB file, 256 KB chunks",
+      "fileSize": "50.00 MB",
+      "chunkSize": "256 KB",
+      "iterations": 3,
+      "avgThroughput": "8.09 MB/s",
+      "avgDuration": "6.18s",
+      "avgLatency": "20.10 ms",
+      "p95Latency": "24.40 ms",
+      "p99Latency": "24.81 ms",
+      "totalChunks": 200
+    }
+  ]
+}

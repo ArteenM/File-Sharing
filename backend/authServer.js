@@ -14,7 +14,7 @@ app.use(express.json())
 
 app.use(cors({
     origin: ['http://localhost:3000]', // server.js,
-             'http://localhost:5173' // Front end.
+             'http://localhost:4173' // Front end.
     ],
     credentials: true
 }))
@@ -103,41 +103,37 @@ app.post('/users', async (req, res) => {
 
 
 app.post('/login', async (req, res) => {
-    // Make async since using bcrypt to compare passwords.
-
+    // Find user
     const user = userDb.findUser(req.body.username)
-    if (user == null)
-    {
-        return res.status(400).send() //Cannot find user
-    }
-    try
-    {
-        // Use bcrypt to prevent timing attacks in constant time algorithms
-        if (await bcrypt.compare(req.body.password, user.password))
-        {   
-            const payload = { name: user.username, id: user.id}
-            const accessToken = generateAccessToken(payload)
-            const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET)
-
-            userDb.insertToken(refreshToken, user.id)
-
-            res.status(200).json({
-                accessToken: accessToken,
-                refreshToken: refreshToken,
-                user: { id: user.id, username: user.username }
-            })
-
-        }
-        else
-        {
-            return res.status(400).send()
-        }
+    
+    // Check if user exists FIRST
+    if (user == null) {
+        return res.status(400).send() // Bad request - user doesn't exist
     }
     
+    // Now it's safe to compare passwords
+    const comparePass = await bcrypt.compare(req.body.password, user.password)
+    
+    if (!comparePass) {
+        return res.status(400).send() // Bad request - wrong password
+    }
+    
+    try {
+        // User exists and password is correct
+        const payload = { name: user.username, id: user.id}
+        const accessToken = generateAccessToken(payload)
+        const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET)
 
-    catch
-    {
-        res.status(500).send() //Internal server error
+        userDb.insertToken(refreshToken, user.id)
+
+        res.status(200).json({
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            user: { id: user.id, username: user.username }
+        })
+    }
+    catch (error) {
+        res.status(500).send() // Internal server error
     }
 })
 
@@ -145,4 +141,14 @@ function generateAccessToken(user)
 {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10m'})
 }
-app.listen(4000)
+
+const PORT = process.env.PORT || 4000;
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Auth server running on port ${PORT}`);
+  });
+}
+
+// Export app for testing
+module.exports = app;
