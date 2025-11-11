@@ -14,7 +14,7 @@ app.use(express.json())
 
 app.use(cors({
     origin: ['http://localhost:3000]', // server.js,
-             'http://localhost:4173' // Front end.
+             'http://localhost:5173' // Front end.
     ],
     credentials: true
 }))
