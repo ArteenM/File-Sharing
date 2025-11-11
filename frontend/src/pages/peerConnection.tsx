@@ -151,6 +151,11 @@ function PeerApp() {
     }
   }
 
+  const deleteFile = () => {
+    setInputFile(null)
+    setMetrics(null)
+  }
+
   useEffect(() => {
     const peer = new Peer({
       config: {
@@ -430,231 +435,180 @@ function PeerApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="min-w-screen mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-6">
-          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-            🔒 P2P File Transfer with Encryption
-          </h1>
-
-          {/* Peer ID Display */}
-          <div className="mb-4 p-3 bg-gray-100 rounded">
-            <strong className="font-mono text-sm text-gray-700">Your Peer ID:</strong> 
-            <span className="font-mono text-sm ml-2 select-all text-gray-900 bg-white px-2 py-1 rounded">
-              {peerId || (
-                <span className="text-gray-500">Connecting to PeerJS server... ⏳</span>
-              )}
-            </span>
-            {peerId && (
-              <button 
-                onClick={() => {navigator.clipboard.writeText(peerId)}}
-                className="ml-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-              >
-                Copy ID
-              </button>
-            )}
+    <div className="min-h-screen min-w-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        {/* Header / Hero */}
+        <header className="mb-8">
+          <div className="flex items-center gap-6 bg-white/4 backdrop-blur-md border border-white/6 rounded-2xl p-6 shadow-lg">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-white">Encrypted P2P File Transfer</h1>
+              <p className="text-sm text-slate-300 mt-1">Peer-to-peer, end-to-end encrypted file sharing — no server storage.</p>
+            </div>
+            <div className="ml-auto">
+              <button className="text-sm text-slate-200 bg-white/6 hover:bg-white/10 px-3 py-2 rounded-md">Logout</button>
+            </div>
           </div>
+        </header>
 
-          {/* Encryption Toggle */}
-          <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="encryption"
-                  checked={encryptionEnabled}
-                  onChange={(e) => setEncryptionEnabled(e.target.checked)}
-                  disabled={connectionStatus !== 'disconnected'}
-                  className="w-4 h-4"
-                />
-                <label htmlFor="encryption" className="text-sm font-medium text-gray-700">
-                  Enable End-to-End Encryption (AES-256-GCM)
+        {/* Main grid: controls (left) + details/metrics (right) */}
+        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Controls / Transfer area */}
+          <section className="lg:col-span-2 bg-white/4 backdrop-blur-md border border-white/6 rounded-2xl p-6 shadow-md">
+            {/* Peer ID + status */}
+            <div className="mb-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <div className="text-xs text-slate-300">Your Peer ID</div>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="font-mono text-white bg-white/6 px-3 py-2 rounded-md min-w-[220px] truncate">
+                      {peerId || 'Connecting...'}
+                    </div>
+                    <button
+                      onClick={() => peerId && navigator.clipboard.writeText(peerId)}
+                      disabled={!peerId}
+                      className="px-2 py-2 bg-blue-500 text-white text-sm"
+                    >
+                      Copy
+                    </button>
+
+                    <div className="ml-auto flex items-center gap-2">
+                      <span className={`w-3 h-3 rounded-full ${connectionStatus === 'connected' ? 'bg-emerald-400' : connectionStatus === 'connecting' ? 'bg-yellow-400 animate-pulse' : 'bg-rose-500'}`}></span>
+                      <span className="text-sm text-slate-300">{connectionStatus.charAt(0).toUpperCase() + connectionStatus.slice(1)}</span>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-400">If Peer ID doesn't appear, check DevTools network and console — PeerJS signalling may be blocked.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Connection + encryption controls */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="p-4 rounded-lg bg-white/5 border border-white/6">
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={encryptionEnabled}
+                    onChange={(e) => setEncryptionEnabled(e.target.checked)}
+                    disabled={connectionStatus !== 'disconnected'}
+                    className="h-4 w-4 rounded"
+                  />
+                  <div>
+                    <div className="text-sm text-white font-medium">Enable Encryption</div>
+                    <div className="text-xs text-slate-300">AES-256-GCM for confidentiality and integrity</div>
+                  </div>
                 </label>
               </div>
-              {encryptionEnabled && keyExchangeComplete && (
-                <span className="text-xs text-green-600 font-semibold">🔒 Secured</span>
-              )}
-            </div>
-            <p className="text-xs text-gray-600 mt-1">
-              {encryptionEnabled 
-                ? "Files are encrypted before transmission. Only the recipient can decrypt them."
-                : "Files are sent without encryption (not recommended for sensitive data)"}
-            </p>
-          </div>
 
-          {/* Connection Controls */}
-          <div className="mb-6 space-y-3">
-            <div className="flex gap-2">
+              <div className="p-4 rounded-lg bg-white/5 border border-white/6 flex flex-col justify-between">
+                <div>
+                  <label className="text-sm text-slate-300">Remote Peer ID</label>
+                  <input
+                    type="text"
+                    value={remotePeerId}
+                    onChange={(e) => setRemotePeerId(e.target.value)}
+                    placeholder="Enter peer ID to connect"
+                    className="mt-2 w-full rounded-md px-3 py-2 bg-transparent border border-white/6 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    disabled={connectionStatus === 'connected' || connectionStatus === 'connecting'}
+                  />
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  {connectionStatus === 'connected' ? (
+                    <button onClick={disconnect} className="flex-1 px-4 py-2 rounded-md bg-rose-500 text-white font-semibold hover:opacity-95">Disconnect</button>
+                  ) : (
+                    <button
+                      onClick={connectToPeer}
+                      disabled={connectionStatus === 'connecting' || !remotePeerId}
+                      className="flex-1 px-4 py-2 rounded-md bg-gradient-to-r bg-blue-500 text-white font-semibold disabled:opacity-50"
+                    >
+                      {connectionStatus === 'connecting' ? 'Connecting…' : 'Connect'}
+                    </button>
+                  )}
+                  {connectionStatus === 'connecting' && (
+                    <button onClick={disconnect} className="px-3 py-2 rounded-md bg-white/6 text-slate-200">Abort</button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* File input card */}
+            <div className="mb-6 p-5 rounded-xl bg-gradient-to-br from-white/3 to-white/6 border border-white/6">
+              <label className="block text-sm text-slate-200 mb-2">Select File</label>
               <input
-                type="text"
-                value={remotePeerId}
-                onChange={(e) => setRemotePeerId(e.target.value)}
-                placeholder="Enter remote peer ID"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                disabled={connectionStatus === 'connected' || connectionStatus === 'connecting'}
+                type="file"
+                onChange={handleFileChange}
+                className="w-full text-sm text-slate-300 file:rounded file:px-4 file:py-2 file:bg-sky-600 file:text-white file:border-0"
               />
-              {connectionStatus === 'connected' ? (
-                <button 
-                  onClick={disconnect}
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                >
-                  Disconnect
-                </button>
-              ) : (
-                <button 
-                  onClick={connectToPeer}
-                  disabled={connectionStatus === 'connecting' || !remotePeerId}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 transition-colors"
-                >
-                  {connectionStatus === 'connecting' ? 'Connecting...' : 'Connect'}
-                </button>
-              )}
-
-              {connectionStatus === 'connecting' && (
-                <button
-                  onClick={disconnect}
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                >
-                  Abort
-                </button>
-              )}
+              {inputFile && <div className="mt-3 text-sm text-slate-200">Selected: <span className="font-medium">{inputFile.name}</span> • {(inputFile.size / 1024 / 1024).toFixed(2)} MB</div>}
             </div>
-            
-            <div className="text-sm flex items-center gap-4">
-              <span>
-                Status: <span className={`font-semibold ${
-                  connectionStatus === 'connected' ? 'text-green-600' :
-                  connectionStatus === 'connecting' ? 'text-yellow-600' :
-                  'text-red-600'
-                }`}>
-                  {connectionStatus.charAt(0).toUpperCase() + connectionStatus.slice(1)}
-                </span>
-              </span>
-              {encryptionEnabled && connectionStatus === 'connected' && (
-                <span className="text-xs">
-                  Key Exchange: <span className={keyExchangeComplete ? 'text-green-600 font-semibold' : 'text-yellow-600'}>
-                    {keyExchangeComplete ? '✓ Complete' : '⏳ In Progress...'}
-                  </span>
-                </span>
-              )}
-            </div>
-          </div>
 
-          {/* File Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select File to Send:
-            </label>
-            <input 
-              type="file" 
-              onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            {inputFile && (
-              <div className="mt-2 text-sm text-gray-600">
-                Selected: <strong>{inputFile.name}</strong> ({(inputFile.size / 1024 / 1024).toFixed(2)} MB)
+            {/* Send / Reset */}
+            <div className="flex items-center gap-4 mb-6">
+              <button
+                onClick={sendFile}
+                disabled={!inputFile || connectionStatus !== 'connected' || isTransferring || (encryptionEnabled && !keyExchangeComplete)}
+                className="flex-1 px-6 py-3 rounded-full bg-emerald-500 text-white font-semibold shadow-lg hover:scale-[1.01] transition-transform disabled:opacity-50"
+              >
+                {isTransferring ? 'Sending…' : `Send File${encryptionEnabled ? ' (Encrypted)' : ''}`}
+              </button>
+
+              <button onClick={deleteFile} className="px-4 py-3 rounded-full bg-white/6 text-slate-200">Reset</button>
+            </div>
+
+            {/* Transfer progress */}
+            {isTransferring && (
+              <div className="w-full h-3 bg-white/6 rounded-full overflow-hidden">
+                <div className="h-3 bg-gradient-to-r from-emerald-400 to-sky-500 transition-all" style={{ width: `${transferProgress}%` }} />
               </div>
             )}
-          </div>
+          </section>
 
-          {/* Progress Bar */}
-          {isTransferring && (
-            <div className="mb-6">
-              <div className="w-full bg-gray-200 rounded-full h-4">
-                <div 
-                  className="bg-blue-600 h-4 rounded-full transition-all duration-300"
-                  style={{ width: `${transferProgress}%` }}
-                />
+          {/* Right: metrics / help panel */}
+          <aside className="lg:col-span-1 bg-white/4 backdrop-blur-md border border-white/6 rounded-2xl p-6 shadow-md">
+            <div className="mb-4">
+              <h3 className="text-white font-semibold">Session</h3>
+              <div className="mt-3 text-sm text-slate-300 space-y-2">
+                <div><strong className="text-slate-200">Key Exchange:</strong> {keyExchangeComplete ? <span className="text-emerald-400">Complete</span> : <span className="text-yellow-400">Pending</span>}</div>
+                <div><strong className="text-slate-200">Encryption:</strong> <span className="text-slate-200">{encryptionEnabled ? 'Enabled' : 'Disabled'}</span></div>
+                <div><strong className="text-slate-200">PeerJS:</strong> <span className="text-slate-300">STUN signalling</span></div>
               </div>
-              <p className="text-sm text-gray-600 mt-1 text-center">
-                {transferProgress.toFixed(1)}% transferred
-              </p>
             </div>
-          )}
 
-          {/* Send File Button */}
-          <div className="mb-6">
-            <button 
-              onClick={sendFile}
-              disabled={!inputFile || connectionStatus !== 'connected' || isTransferring || (encryptionEnabled && !keyExchangeComplete)}
-              className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400 transition-colors font-semibold"
-            >
-              {isTransferring ? 'Sending...' : `Send File${encryptionEnabled ? ' (Encrypted)' : ''}`}
-            </button>
-          </div>
-
-          {/* Performance Metrics Display */}
-          {metrics && (
-            <div className="border-t pt-4 mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-800 text-lg">Performance Metrics</h3>
-                {metrics.encrypted && (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded font-semibold">
-                    🔒 Transfer Encrypted
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded">
-                <div>
-                  <p className="text-xs text-gray-600">Throughput</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {metrics.throughput?.toFixed(2)} MB/s
-                  </p>
+            <div className="mb-4">
+              <h4 className="text-white font-semibold mb-3">Performance</h4>
+              {metrics ? (
+                <div className="space-y-3 text-sm text-slate-300">
+                  <div className="p-3 bg-white/5 rounded-md">
+                    <div className="text-xs text-slate-400">Throughput</div>
+                    <div className="text-lg font-bold text-white">{metrics.throughput?.toFixed(2)} MB/s</div>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-md">
+                    <div className="text-xs text-slate-400">Transferred</div>
+                    <div className="text-lg font-bold text-white">{(metrics.bytesTransferred / (1024 * 1024)).toFixed(2)} MB</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2 bg-white/5 rounded text-xs"><div className="text-slate-400">Avg</div><div className="text-white font-medium">{metrics.averageLatency?.toFixed(1)} ms</div></div>
+                    <div className="p-2 bg-white/5 rounded text-xs"><div className="text-slate-400">P95</div><div className="text-white font-medium">{metrics.p95Latency?.toFixed(1)} ms</div></div>
+                    <div className="p-2 bg-white/5 rounded text-xs"><div className="text-slate-400">P99</div><div className="text-white font-medium">{metrics.p99Latency?.toFixed(1)} ms</div></div>
+                    <div className="p-2 bg-white/5 rounded text-xs"><div className="text-slate-400">Duration</div><div className="text-white font-medium">{((metrics.endTime! - metrics.startTime) / 1000).toFixed(2)}s</div></div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-600">Total Transferred</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {(metrics.bytesTransferred / (1024 * 1024)).toFixed(2)} MB
-                  </p>
-                </div>
-                {metrics.averageLatency !== undefined && (
-                  <>
-                    <div>
-                      <p className="text-xs text-gray-600">Avg Latency</p>
-                      <p className="text-xl font-bold text-gray-700">
-                        {metrics.averageLatency.toFixed(2)} ms
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">P95 Latency</p>
-                      <p className="text-xl font-bold text-orange-600">
-                        {metrics.p95Latency?.toFixed(2)} ms
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">P99 Latency</p>
-                      <p className="text-xl font-bold text-red-600">
-                        {metrics.p99Latency?.toFixed(2)} ms
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Duration</p>
-                      <p className="text-xl font-bold text-purple-600">
-                        {((metrics.endTime! - metrics.startTime) / 1000).toFixed(2)}s
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
+              ) : (
+                <div className="text-sm text-slate-400">No metrics yet — send a file to see transfer stats.</div>
+              )}
             </div>
-          )}
 
-          {/* How-To Guide */}
-          <div className="border-t pt-4">
-            <h3 className="font-semibold mb-3 text-gray-800">How to Use:</h3>
-            <div className="bg-gray-50 rounded p-4 space-y-2 text-sm text-gray-700">
-              <p>1. Enable/disable encryption (must be done before connecting)</p>
-              <p>2. Copy your Peer ID and share it with another user</p>
-              <p>3. Enter the remote Peer ID and click "Connect"</p>
-              <p>4. Wait for key exchange to complete (if encryption enabled)</p>
-              <p>5. Select a file and click "Send File"</p>
-              <p>6. View real-time performance metrics after transfer</p>
-              <p className="text-xs text-gray-500 mt-3">
-                <strong>Security:</strong> AES-256-GCM encryption, 256KB chunks, P2P (no server storage), STUN servers for NAT traversal
-              </p>
+            <div className="mt-4 text-sm text-slate-400">
+              <h4 className="text-white font-semibold mb-2">Quick Guide</h4>
+              <ol className="list-decimal pl-5 space-y-1">
+                <li>Enable encryption before connecting if desired.</li>
+                <li>Share your Peer ID with the recipient.</li>
+                <li>Enter remote ID and click Connect.</li>
+                <li>Select a file and click Send — recipient downloads automatically.</li>
+              </ol>
             </div>
-          </div>
-        </div>
+          </aside>
+        </main>
       </div>
     </div>
   )
