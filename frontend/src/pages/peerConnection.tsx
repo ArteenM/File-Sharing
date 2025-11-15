@@ -13,6 +13,11 @@ const downloadFile = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url)
 }
 
+interface PeerMessageProps
+{
+  onLogout: () => void
+}
+
 const CHUNK_SIZE = 256 * 1024 // 256 KB
 
 // Encryption utilities using Web Crypto API
@@ -101,7 +106,7 @@ interface FileEnd {
 
 type FileMessage = FileChunk | FileStart | FileEnd | KeyExchange
 
-function PeerApp() {
+function PeerApp({ onLogout }: PeerMessageProps) {
   const [peerId, setPeerId] = useState('')
   const [remotePeerId, setRemotePeerId] = useState('')
   const [inputFile, setInputFile] = useState<File | null>(null)
@@ -445,7 +450,9 @@ function PeerApp() {
               <p className="text-sm text-slate-300 mt-1">Peer-to-peer, end-to-end encrypted file sharing — no server storage.</p>
             </div>
             <div className="ml-auto">
-              <button className="text-sm text-slate-200 bg-white/6 hover:bg-white/10 px-3 py-2 rounded-md">Logout</button>
+              <button 
+              onClick={onLogout}
+              className="text-sm text-slate-200 bg-white/6 hover:bg-white/10 px-3 py-2 rounded-md">Logout</button>
             </div>
           </div>
         </header>

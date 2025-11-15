@@ -2,7 +2,6 @@ import { useState } from 'react';
 import LoginPage from './pages/login.tsx'
 import PeerApp from './pages/peerConnection.tsx'
 import RegisterPage from './pages/register.tsx'
-import Header from './components/headerComponent.tsx'
 import RegisterHeader from './components/registerHeader.tsx';
 
 type PageType = 'login' | 'inputFile' | 'register'
@@ -23,6 +22,8 @@ function App()
     const handleLoginSuccess = (userData: User) => {
         setUser(userData)
         setCurrentPage('inputFile')
+        localStorage.clear()
+        sessionStorage.clear()
     }
 
     const handleLogout = async() =>
@@ -86,8 +87,7 @@ function App()
 
             {currentPage === 'inputFile' && user && (
                 <>
-                <Header onLogout={handleLogout} />
-                <PeerApp />
+                <PeerApp onLogout={handleLogout}/>
                 </>
             )}
 
