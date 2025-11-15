@@ -1,4 +1,4 @@
-// ...existing code...
+import config from '../config'
 import React, { useState } from 'react'
 
 interface User {
@@ -69,7 +69,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const newErrors: FormErrors = {}
 
     try {
-      const BASE_URL = 'http://localhost:4000'
+      const BASE_URL = config.API_URL
       const endpoint = `${BASE_URL}/login`
 
       const body = {

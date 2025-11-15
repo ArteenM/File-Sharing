@@ -1,4 +1,4 @@
-// ...existing code...
+import config from '../config'
 import React, { useState } from 'react'
 
 interface FormData {
@@ -74,7 +74,7 @@ const RegisterPage: React.FC<RegisterProps> = ({ onRegisterSuccess }) => {
     setErrors({})
 
     try {
-      const BASE_URL = 'http://localhost:4000'
+      const BASE_URL = config.API_URL
       const endpoint = `${BASE_URL}/users`
 
       const body = {
