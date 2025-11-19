@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react(),
     tailwindcss()
   ],
-  base: "/File-Sharing",
+  base: '/', 
   server: {
     port: 4173,
     proxy: {
@@ -17,4 +17,3 @@ export default defineConfig({
     }
   }
 })
-
