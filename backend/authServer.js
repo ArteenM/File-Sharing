@@ -13,8 +13,12 @@ const cors = require('cors')
 app.use(express.json())
 
 app.use(cors({
-    origin: ['http://localhost:3000]', // server.js,
-             'http://localhost:5173' // Front end.
+    origin: ['http://localhost:3000', // server.js,
+             'http://localhost:5173',
+             'https://p2p-file-transfer-puce.vercel.app',
+             'https://p2p-file-transfer-arteen-mohammadis-projects.vercel.app',
+             'https://p2p-file-transfer-arteenm-arteen-mohammadis-projects.vercel.app',
+             'https://p2p-file-transfer-hru5qqqqg-arteen-mohammadis-projects.vercel.app'
     ],
     credentials: true
 }))
