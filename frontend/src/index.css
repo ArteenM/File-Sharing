@@ -4,6 +4,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* Force dark mode globally */
+  html {
+    @apply bg-slate-900;
+    color-scheme: dark;
+  }
+  
+  body {
+    @apply bg-slate-900 text-slate-100 min-h-screen;
+  }
+  
+  #root {
+    @apply min-h-screen bg-slate-900;
+  }
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
@@ -19,9 +35,10 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Force dark mode colors */
+  color-scheme: dark;
+  color: rgba(241, 245, 249, 0.87); /* slate-100 */
+  background-color: rgb(15, 23, 42); /* slate-900 */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,11 +48,12 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #60a5fa; /* blue-400 for dark mode */
   text-decoration: inherit;
 }
+
 a:hover {
-  color: #535bf2;
+  color: #93c5fd; /* blue-300 */
 }
 
 body {
@@ -45,11 +63,17 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow: hidden;
+  background-color: rgb(15, 23, 42); /* slate-900 */
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+}
+
+/* Force dark styling for form elements */
+input, select, textarea {
+  color-scheme: dark;
 }
 
 button {
@@ -64,22 +88,30 @@ button {
 }
 
 button:hover {
-  border-color: #646cff;
+  border-color: #60a5fa;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* Remove light mode overrides - force dark mode always */
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: rgba(241, 245, 249, 0.87); /* Keep dark */
+    background-color: rgb(15, 23, 42); /* Keep dark */
   }
+  
+  body {
+    background-color: rgb(15, 23, 42); /* Keep dark */
+  }
+  
   a:hover {
-    color: #747bff;
+    color: #93c5fd; /* Keep dark mode link color */
   }
+  
   button {
-    background-color: #f9f9f9;
+    background-color: transparent; /* Don't force white background */
   }
 }
