@@ -539,14 +539,46 @@ function PeerApp({ onLogout }: PeerMessageProps) {
             </div>
 
             {/* File input card */}
-            <div className="mb-6 p-5 rounded-xl bg-gradient-to-br from-white/3 to-white/6 border border-white/6">
-              <label className="block text-sm text-slate-200 mb-2">Select File</label>
+            <div 
+              className="mb-6 p-8 rounded-xl border-2 border-dashed transition-all border-white/20 bg-gradient-to-br from-white/3 to-white/">
+              <label className="block text-sm text-slate-200 mb-3 text-center">
+                Select File or Drag & Drop
+              </label>
+              
               <input
                 type="file"
                 onChange={handleFileChange}
-                className="w-full text-sm text-slate-300 file:rounded file:px-4 file:py-2 file:bg-sky-600 file:text-white file:border-0"
+                className="hidden"
+                id="file-input"
               />
-              {inputFile && <div className="mt-3 text-sm text-slate-200">Selected: <span className="font-medium">{inputFile.name}</span> • {(inputFile.size / 1024 / 1024).toFixed(2)} MB</div>}
+              
+              <label 
+                htmlFor="file-input"
+                className="block w-full text-center cursor-pointer"
+              >
+                <div className="w-full px-4 py-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-slate-300 transition-colors">
+                  Click to browse files
+                </div>
+              </label>
+              
+              {inputFile && (
+                <div className="mt-4 p-3 rounded-lg bg-white/10 border border-white/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-white">{inputFile.name}</div>
+                      <div className="text-xs text-slate-400">
+                        {(inputFile.size / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    </div>
+                    <button
+                      onClick={deleteFile}
+                      className="ml-3 px-3 py-1 text-xs rounded-md bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Send / Reset */}
