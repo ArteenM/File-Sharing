@@ -14,7 +14,7 @@ app.use(express.json())
 
 app.use(cors({
     origin: ['http://localhost:3000', // server.js,
-             'http://localhost:5173',
+             'http://localhost:4173',
              'https://p2p-file-transfer-puce.vercel.app',
              'https://p2p-file-transfer-arteen-mohammadis-projects.vercel.app',
              'https://p2p-file-transfer-arteenm-arteen-mohammadis-projects.vercel.app',
