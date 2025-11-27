@@ -16,8 +16,8 @@ Secure, real-time peer-to-peer file sharing with end-to-end encryption and perfo
 ## 📊 Performance
 
 - **Throughput**: 18-20 MB/s (local network)
-- **Latency**: P95 <200ms, P99 <850ms
-- **Transfer Times**: 1MB in ~3.6s, 10MB in ~54s
+- **Latency**: P95 <200ms, P99 <850ms on 1GB Files.
+- **Transfer Times**: 20MB in ~3.6s, 1GB in ~54s
 
 [See full benchmarks →](./TECHNICAL.md)
 
@@ -29,20 +29,6 @@ Secure, real-time peer-to-peer file sharing with end-to-end encryption and perfo
 - **Authentication**: JWT + bcrypt + SQLite
 
 [See technical details →](./TECHNICAL.md)
-
-## 🚀 Quick Start
-```bash
-# Clone
-git clone YOUR_REPO_URL
-cd p2p-file-transfer
-
-# Install
-npm install
-
-# Run
-npm run dev  # Frontend (port 5173)
-npm start    # Backend (port 4000)
-```
 
 ## 🧪 Testing
 ```bash
